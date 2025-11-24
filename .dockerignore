@@ -1,0 +1,52 @@
+# Build artifacts
+build/
+.gradle/
+out/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Documentation
+README.md
+*.md
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Test results
+test-results/
+*.test
+
+# Temporary files
+tmp/
+temp/
+*.tmp
