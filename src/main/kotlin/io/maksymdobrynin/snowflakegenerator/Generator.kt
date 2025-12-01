@@ -1,5 +1,6 @@
 package io.maksymdobrynin.snowflakegenerator
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service
 @Service
 class Generator(
 	private val settings: GeneratorSettings,
+	private val kubernetesSettings: KubernetesSettings,
 ) {
 	companion object {
 		private const val NEW_TIMESTAMP_TIMEOUT = 3000L
@@ -17,6 +19,8 @@ class Generator(
 		private const val WORKER_BITS = 5
 		private const val SEQUENCE_BITS = 12
 	}
+
+	private val logger = KotlinLogging.logger {}
 
 	/**
 	 * Maximum possible to be stored in 5-bits as datacenter id.
@@ -76,6 +80,11 @@ class Generator(
 	 */
 	suspend fun nextId(): Long =
 		lock.withLock {
+			if (kubernetesSettings.podName != null && kubernetesSettings.nodeName != null) {
+				logger.info { "Response from Pod with name: ${kubernetesSettings.podName} " +
+					"and Node with name ${kubernetesSettings.nodeName}" }
+			}
+
 			var timestamp = settings.nextTimeSeed.invoke()
 
 			if (lastTimestamp == timestamp) {

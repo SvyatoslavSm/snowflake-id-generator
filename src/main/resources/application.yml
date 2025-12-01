@@ -7,6 +7,10 @@ snowflake-settings:
   datacenter-id: 1
   worked-id: 1
 
+kubernetes-settings:
+  pod-name: ${POD_NAME}
+  node-name: ${NODE_NAME}
+
 management:
   endpoints:
     web:
