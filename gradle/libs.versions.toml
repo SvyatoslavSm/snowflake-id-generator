@@ -8,6 +8,7 @@ kt-lib = "1.9.25"
 ktx-coroutines = "1.9.0"
 junit-jupiter = "5.11.4"
 assertj-core = "3.27.3"
+kt-logging = "5.1.0"
 
 [libraries]
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "gradle-detekt" }
@@ -18,3 +19,4 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj-core" }
 springframework-boot-starter-web = {module ="org.springframework.boot:spring-boot-starter-web"}
 springframework-boot-starter-actuator= {module ="org.springframework.boot:spring-boot-starter-actuator"}
+kotlin-logging = {module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kt-logging" }

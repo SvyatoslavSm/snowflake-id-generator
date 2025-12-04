@@ -8,5 +8,9 @@ import org.springframework.context.annotation.Configuration
 open class ApplicationConfig {
 	@Bean
 	@ConfigurationProperties(prefix = "snowflake-settings")
-	open fun nexoDeviceHandlerSenderProperties(): GeneratorSettings = GeneratorSettings()
+	open fun nextDeviceHandlerSenderProperties(): GeneratorSettings = GeneratorSettings()
+
+	@Bean
+	@ConfigurationProperties(prefix = "kubernetes-settings")
+	open fun kubernetesProperties(): KubernetesSettings = KubernetesSettings()
 }
