@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: snowflake-id-generator-ingress
+  annotations:
+    kubernetes.io/ingress.class: contour
+spec:
+  tls:
+    - hosts:
+      - snowflake.dev.local # имя хоста
+      secretName: snowflake-id-generator-tls
+  rules:
+    - host: snowflake.dev.local # имя хоста
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: # определяет, куда перенаправлять трафик
+              service:
+                name: snowflake-id-generator-service # имя сервиса, на который уходит запрос
+                port:
+                  number: 80 # порт сервиса, на который направляется трафик
