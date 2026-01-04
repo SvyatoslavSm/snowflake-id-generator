@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: snowflake-id-generator-replicaset
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: snowflake-id-generator
+  template:
+    metadata:
+      labels:
+        app: snowflake-id-generator
+    spec:
+      initContainers:
+      - name: generate-worked-id
+        image: busybox:1.36
+        command: ['sh', '-c', '>
+            WORKED_ID=$$(( ( RANDOM % 1023 ) + 1 ));
+            printf "snowflake-settings:\n  worked-id: %s\n" "$${WORKED_ID}" > /config/application.yml']
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+      containers:
+      - image: snowflake-id-generator:0.0.1
+        name: snowflake-id-generator
+        livenessProbe:
+          httpGet:
+            path: /management/health/liveness
+            port: 8080
+          initialDelaySeconds: 15
+          timeoutSeconds: 2
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /management/health/readiness
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: APPLICATION_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: snowflake-id-generator-config
+                key: APPLICATION_NAME
+          - name: STARTING_EPOCH
+            valueFrom:
+              configMapKeyRef:
+                name: snowflake-id-generator-config
+                key: STARTING_EPOCH
+          - name: DATACENTER_ID
+            valueFrom:
+              configMapKeyRef:
+                name: snowflake-id-generator-config
+                key: DATACENTER_ID
+      volumes:
+      - name: config-volume
+        emptyDir: {}
