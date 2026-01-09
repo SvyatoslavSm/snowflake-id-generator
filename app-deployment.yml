@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snowflake-id-generator-deployment
+  annotations:
+    kubernetes.io/change-cause: "Init" # Описание к ревизии
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: snowflake-id-generator
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  template:
+    metadata:
+      labels:
+        app: snowflake-id-generator
+    spec:
+      containers:
+        - image: snowflake-id-generator:0.0.1
+          name: snowflake-id-generator
+          livenessProbe:
+            httpGet:
+              path: /management/health/liveness
+              port: 8080
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /management/health/readiness
+              port: 8080
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            requests: # Минимальное гарантируемые ресурсы
+              cpu: "500m"
+              memory: "256Mi"
+            limits: # Максимально допустимые ресурсы
+              cpu: "1000m"
+              memory: "500Mi"
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
