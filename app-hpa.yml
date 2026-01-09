@@ -1,0 +1,25 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: snowflake-id-generator-hpa
+  namespace: default
+spec:
+  scaleTargetRef: # Масштабируемый объект
+    apiVersion: apps/v1
+    kind: Deployment
+    name: snowflake-id-generator-deployment
+  minReplicas: 1 # Минимальное количество объектов Pod
+  maxReplicas: 3 # Максимальное количество объектов Pod
+  metrics: # Метрики учитываемые при принятии решения о масштабировании
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70 # Средняя загрузка ЦПУ более 70% после чего начинается масштабирование
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: AverageValue
+          averageValue: 350Mi # Средняя загрузка ОЗУ не более 350mi после чего начинается масштабирование

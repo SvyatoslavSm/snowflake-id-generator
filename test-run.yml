@@ -1,0 +1,9 @@
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: my-test
+spec:
+  parallelism: 2 # Number of parallel pods to run the test
+  script:
+    configMap:
+      name: my-test-script
