@@ -1,0 +1,6 @@
+CREATE TABLE id_info (
+    guid BIGINT PRIMARY KEY NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    datacenter_id BIGINT NOT NULL,
+    worked_id BIGINT NOT NULL
+);
