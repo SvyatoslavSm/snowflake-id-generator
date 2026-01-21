@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: snowflake-id-generator-deployment
-  annotations:
-    kubernetes.io/change-cause: "Rollout to v0.0.2" # Описание к ревизии
 spec:
   replicas: 3
   selector:
@@ -20,8 +18,15 @@ spec:
         app: snowflake-id-generator
     spec:
       containers:
-      - image: snowflake-id-generator:0.0.2
+      - image: snowflake-id-generator:0.0.1
         name: snowflake-id-generator
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "256Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
         livenessProbe:
           httpGet:
             path: /management/health/liveness

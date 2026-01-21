@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+data:
+  fluent.conf: |
+    # Tail ONLY Snowflake ID Generator container logs (by file name).
+    # Kubernetes container log files look like:
+    #   <pod_name>_<namespace>_<container_name>-<container_id>.log
+    # This pattern matches only containers named "snowflake-id-generator"
+    # which matches the container name in app-deployment.yml
+    <source>
+      @type tail
+      # Match any namespace, but only the container named "snowflake-id-generator"
+      path /var/log/containers/*_*_snowflake-id-generator-*.log
+      pos_file /var/log/fluentd-snowflake.pos
+      tag snowflake.id.generator
+      read_from_head true
+      <parse>
+        @type cri
+      </parse>
+    </source>
+
+    <match snowflake.id.generator>
+      @type stdout
+    </match>
