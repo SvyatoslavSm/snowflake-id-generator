@@ -1,0 +1,122 @@
+#global:
+#  postgresql:
+#    enabled: true
+
+# Application configuration
+replicaCount: 1
+
+image:
+  repository: snowflake-id-generator
+  pullPolicy: IfNotPresent
+  tag: "0.0.2"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+# Application service configuration
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  nodePort: 30080
+
+# Application ingress configuration
+ingress:
+  enabled: true
+  className: "contour"
+  annotations: {}
+  hosts:
+    - host: snowflake.dev.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Application resources
+resources:
+  limits:
+    cpu: 1000m
+    memory: 500Mi
+  requests:
+    cpu: 500m
+    memory: 256Mi
+
+# Application autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryAverageValue: 350Mi
+
+# PostgreSQL configuration
+postgres:
+  postgresql:
+    enabled: true
+    image:
+      repository: postgres
+      tag: "15"
+    replicas: 2
+    database: "snowflake_id_generator_db"
+    username: "postgres"
+    password: "postgres"
+    storage:
+      size: 1Gi
+      className: hostpath
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# Fluentd configuration
+fluentd:
+  enabled: true
+  image:
+    repository: fluent/fluentd
+    tag: "edge-debian"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  # Node affinity preferences for worker nodes
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values: ["linux"]
+        - weight: 50
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+
+# Test configuration
+test:
+  enabled: false
+  name: "my-test"
+  parallelism: 2
+  scriptConfigMap: "my-test-script"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

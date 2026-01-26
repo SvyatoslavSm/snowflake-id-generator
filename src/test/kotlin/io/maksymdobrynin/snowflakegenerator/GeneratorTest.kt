@@ -1,5 +1,6 @@
 package io.maksymdobrynin.snowflakegenerator
 
+import io.maksymdobrynin.repository.IdInfoRepository
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -9,9 +10,13 @@ import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.mock
 import java.util.concurrent.atomic.AtomicLong
 
 class GeneratorTest {
+	private val mockKubernetesSettings = KubernetesSettings()
+	private val mockIdInfoRepository: IdInfoRepository = mock()
+
 	@ParameterizedTest
 	@ValueSource(longs = [-4, -3, -2, -1])
 	fun `Should fail to init Generator when given time epoch doesn't match range`(invalidStartingTimeEpoch: Long) {
@@ -22,6 +27,8 @@ class GeneratorTest {
 					datacenterId = 1,
 					workedId = 1,
 				),
+				mockKubernetesSettings,
+				mockIdInfoRepository,
 			)
 		}
 			.isExactlyInstanceOf(IllegalArgumentException::class.java)
@@ -37,6 +44,8 @@ class GeneratorTest {
 					datacenterId = invalidDatacenterId,
 					workedId = 1,
 				),
+				mockKubernetesSettings,
+				mockIdInfoRepository,
 			)
 		}
 			.isExactlyInstanceOf(IllegalArgumentException::class.java)
@@ -52,6 +61,8 @@ class GeneratorTest {
 					datacenterId = 1,
 					workedId = invalidWorkerId,
 				),
+				mockKubernetesSettings,
+				mockIdInfoRepository,
 			)
 		}
 			.isExactlyInstanceOf(IllegalArgumentException::class.java)
@@ -68,6 +79,8 @@ class GeneratorTest {
 					workedId = 1,
 					sequence = invalidSequence,
 				),
+				mockKubernetesSettings,
+				mockIdInfoRepository,
 			)
 		}
 			.isExactlyInstanceOf(IllegalArgumentException::class.java)
@@ -300,6 +313,8 @@ class GeneratorTest {
 				sequence = deterministicSequence,
 				nextTimeSeed = nextTimeSeed,
 			),
+			mockKubernetesSettings,
+			mockIdInfoRepository,
 		)
 
 	private fun deterministicIdentifier(

@@ -1,0 +1,18 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "snowflake-id-generator.fullname" . }}
+  labels:
+    {{- include "snowflake-id-generator.labels" . | nindent 4 }}
+    app: postgres
+spec:
+  selector:
+    {{- include "snowflake-id-generator.selectorLabels" . | nindent 4 }}
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+  clusterIP: None
+{{- end }}
