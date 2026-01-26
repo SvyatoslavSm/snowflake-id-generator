@@ -1,0 +1,53 @@
+Snowflake ID Generator has been successfully deployed!
+
+{{- if .Values.ingress.enabled }}
+Application URL:
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+
+To get the next ID, make a GET request to:
+  http://<your-host>/v1/next-id
+
+{{- else if eq .Values.service.type "NodePort" }}
+Application URL:
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "snowflake-id-generator.fullname" . }}-service)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT/v1/next-id
+
+{{- else if eq .Values.service.type "LoadBalancer" }}
+Application URL:
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch its status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "snowflake-id-generator.fullname" . }}-service'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "snowflake-id-generator.fullname" . }}-service --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.service.port }}/v1/next-id
+
+{{- else }}
+To access the application locally:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "snowflake-id-generator.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:8080
+  echo "Visit http://127.0.0.1:8080/v1/next-id to use your application"
+{{- end }}
+
+Components deployed:
+{{- if .Values.postgres.postgresql.enabled }}
+- PostgreSQL StatefulSet ({{ .Values.postgres.postgresql.replicas }} replicas)
+{{- end }}
+{{- if .Values.fluentd.enabled }}
+- Fluentd DaemonSet (runs on worker nodes only)
+{{- end }}
+{{- if .Values.autoscaling.enabled }}
+- Horizontal Pod Autoscaler ({{ .Values.autoscaling.minReplicas }}-{{ .Values.autoscaling.maxReplicas }} replicas)
+{{- end }}
+
+Check the status of your deployment:
+  kubectl get pods --namespace {{ .Release.Namespace }}
+  kubectl get svc --namespace {{ .Release.Namespace }}
+{{- if .Values.postgres.postgresql.enabled }}
+  kubectl get statefulset --namespace {{ .Release.Namespace }}
+{{- end }}
+{{- if .Values.fluentd.enabled }}
+  kubectl get daemonset --namespace {{ .Release.Namespace }}
+{{- end }}

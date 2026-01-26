@@ -1,0 +1,13 @@
+{{- if .Values.test.enabled }}
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: {{ .Values.test.name }}
+  labels:
+    {{- include "snowflake-id-generator.labels" . | nindent 4 }}
+spec:
+  parallelism: {{ .Values.test.parallelism }}
+  script:
+    configMap:
+      name: {{ .Values.test.scriptConfigMap }}
+{{- end }}

@@ -1,16 +1,20 @@
 package io.maksymdobrynin.snowflakegenerator
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.maksymdobrynin.entity.IdInfo
+import io.maksymdobrynin.repository.IdInfoRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class Generator(
 	private val settings: GeneratorSettings,
 	private val kubernetesSettings: KubernetesSettings,
+	private val idInfoRepository: IdInfoRepository,
 ) {
 	companion object {
 		private const val NEW_TIMESTAMP_TIMEOUT = 3000L
@@ -81,8 +85,10 @@ class Generator(
 	suspend fun nextId(): Long =
 		lock.withLock {
 			if (kubernetesSettings.podName != null && kubernetesSettings.nodeName != null) {
-				logger.info { "Response from Pod with name: ${kubernetesSettings.podName} " +
-					"and Node with name ${kubernetesSettings.nodeName}" }
+				logger.info {
+					"Response from Pod with name: ${kubernetesSettings.podName} " +
+						"and Node with name ${kubernetesSettings.nodeName}"
+				}
 			}
 
 			var timestamp = settings.nextTimeSeed.invoke()
@@ -98,10 +104,22 @@ class Generator(
 
 			lastTimestamp = timestamp
 
-			return ((lastTimestamp - settings.startingEpoch) shl timestampIdShift) or
-				(settings.datacenterId shl datacenterIdShift) or
-				(settings.workedId shl workerIdShift) or
-				settings.sequence
+			val id =
+				((lastTimestamp - settings.startingEpoch) shl timestampIdShift) or
+					(settings.datacenterId shl datacenterIdShift) or
+					(settings.workedId shl workerIdShift) or
+					settings.sequence
+
+			idInfoRepository.save(
+				IdInfo(
+					id,
+					Instant.ofEpochMilli(timestamp),
+					settings.datacenterId,
+					settings.workedId,
+				),
+			)
+
+			return id
 		}
 
 	private suspend fun wait(): Long =

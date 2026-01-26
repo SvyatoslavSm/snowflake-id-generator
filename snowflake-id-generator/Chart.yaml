@@ -1,0 +1,14 @@
+apiVersion: v2
+name: snowflake-id-generator
+description: A Helm chart for Snowflake ID Generator application with PostgreSQL and Fluentd
+
+type: application
+
+version: 1.0.0
+
+appVersion: "0.0.2"
+
+dependencies:
+  - name: postgres
+    version: 1.0.0
+    condition: postgres.enabled

@@ -1,0 +1,47 @@
+{{- if .Values.fluentd.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "snowflake-id-generator.fullname" . }}-fluentd
+  labels:
+    {{- include "snowflake-id-generator.labels" . | nindent 4 }}
+    app: fluentd
+spec:
+  selector:
+    matchLabels:
+      {{- include "snowflake-id-generator.selectorLabels" . | nindent 6 }}
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        {{- include "snowflake-id-generator.selectorLabels" . | nindent 8 }}
+        app: fluentd
+    spec:
+      {{- with .Values.fluentd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: fluentd
+          image: "{{ .Values.fluentd.image.repository }}:{{ .Values.fluentd.image.tag }}"
+          resources:
+            {{- toYaml .Values.fluentd.resources | nindent 12 }}
+          volumeMounts:
+            - name: fluentd-config
+              mountPath: /fluentd/etc
+            - name: varlog
+              mountPath: /var/log
+            - name: containers
+              mountPath: /var/log/containers
+              readOnly: true
+      volumes:
+        - name: fluentd-config
+          configMap:
+            name: {{ include "snowflake-id-generator.fullname" . }}-fluentd-config
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: containers
+          hostPath:
+            path: /var/log/containers
+{{- end }}
